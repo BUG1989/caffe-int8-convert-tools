@@ -78,7 +78,7 @@ Thanks to our company [SenseNets](http://www.sensenets.com/home/) to support the
 
 Thanks to the help from the following friends:
 
-Algorithm : [xupengfeixupf](https://github.com/xupengfeixupf), [JansonZhu](https://github.com/JansonZhu), wangxinwei, lengmianmian
+Algorithm : [xupengfeixupf](https://github.com/xupengfeixupf), [JansonZhu](https://github.com/JansonZhu), wangxinwei, [lengmm](https://github.com/lengmm)
 
 Python : [daquexian](https://github.com/daquexian)
 
