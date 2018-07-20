@@ -2,7 +2,9 @@
 
 This convert tools is base on TensorRT 2.0 Int8 calibration tools,which use the KL algorithm to find the suitable threshold to quantize the activions from Float32 to Int8(-128 - 127).
 
-We provide the Classification(SqueezeNet_v1.1) and Detection(MobileNet_v1 SSD 300) demos based on [ncnn](https://github.com/Tencent/ncnn)(It is a high-performance neural network inference framework optimized for the mobile platform )
+We provide the Classification(SqueezeNet_v1.1) and Detection(MobileNet_v1 SSD 300) demos based on [ncnn](https://github.com/Tencent/ncnn)(It is a high-performance neural network inference framework optimized for the mobile platform),and the community ready to support this implment.
+
+[ncnn-int8](https://github.com/Tencent/ncnn/pull/487)
 
 ## Reference
 
@@ -33,6 +35,44 @@ optional arguments:
   
 $ python caffe-int8-convert-tool.py --proto=squeezenet_v1.1.prototxt --model=squeezenet.caffemodel --mean 104 117 123 --images=ILSVRC2012_1k --output=squeezenet_v1.1.table --gpu=1
 ```
+
+Pay attention to the type of images,it is just the original image format,such as jpg or jpeg,do not us the type of caffe dataset(lmdb).
+
+## How to use the output file(calibration.table)
+
+For example in *squeezenet_v1_1.table*
+
+```
+conv1_param_0 138.066410735
+fire2/squeeze1x1_param_0 92.028103407 // the conv layer's weight scale is 92.028
+......
+data 0.841264989609
+conv1 0.295743466455
+pool1 0.161700784564  // the pool layer's top blob scale is 0.1617
+fire2/squeeze1x1 0.0893839724101 // the conv layer's top blob scale is 0.0893
+......
+```
+
+Three steps to implement the *fire2/squeeze1x1* layer int8 convolution:
+
+1. Quantize the bottom_blob and weight:
+
+   ```
+   bottom_blob_int8 = bottom_blob_float32 * data_scale(0.1617)
+   weight_int8 = weight_float32 * weight_scale(92.028)
+   ```
+
+2. Convolution_Int8:
+
+   ```
+   top_blob_int32 = bottom_blob_int8 * weight_int8
+   ```
+
+3. Dequantize the TopBlob_Int32 and add the bias:
+
+   ```
+   top_blob_float32 = top_blob_int32 / [data_scale(0.1617) * weight_scale(92.028)] + bias_float32
+   ```
 
 ## Accuracy and Performance
 
@@ -78,7 +118,7 @@ Thanks to our company [SenseNets](http://www.sensenets.com/home/) to support the
 
 Thanks to the help from the following friends:
 
-Algorithm : [xupengfeixupf](https://github.com/xupengfeixupf), [JansonZhu](https://github.com/JansonZhu), wangxinwei, [lengmm](https://github.com/lengmm)
+Algorithm : [xupengfeixupf](https://github.com/xupengfeixupf), [JansonZhu](https://github.com/JansonZhu), wangxinwei, [lengmm](https://github.com/lengmm) 
 
 Python : [daquexian](https://github.com/daquexian)
 
