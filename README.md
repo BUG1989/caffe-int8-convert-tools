@@ -36,7 +36,9 @@ optional arguments:
 $ python caffe-int8-convert-tool.py --proto=squeezenet_v1.1.prototxt --model=squeezenet.caffemodel --mean 104 117 123 --images=ILSVRC2012_1k --output=squeezenet_v1.1.table --gpu=1
 ```
 
-Pay attention to the type of images,it is just the original image format,such as jpg or jpeg,do not us the type of caffe dataset(lmdb).
+Pay attention to the type of images,it is just the original image format,such as jpg or jpeg,do not us the type of caffe dataset(lmdb).
+
+**It is recommended to provide representative calibration dataset for the given model use case,such as the validation or test dataset.**
 
 ## How to use the output file(calibration.table)
 
