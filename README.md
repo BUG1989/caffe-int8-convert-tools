@@ -14,6 +14,8 @@ For details, please read the following PDF:
 
 ## HowTo
 
+### Release version
+
 ```
 $ python caffe-int8-convert-tool.py --help
 usage: caffe-int8-convert-tool.py [-h] [--proto PROTO] [--model MODEL]
@@ -37,10 +39,9 @@ $ python caffe-int8-convert-tool.py --proto=squeezenet_v1.1.prototxt --model=squ
 ```
 
 Pay attention to the type of images,it is just the original image format,such as jpg or jpeg,do not us the type of caffe dataset(lmdb).
-
 **It is recommended to provide representative calibration dataset for the given model use case,such as the validation or test dataset.**
 
-## How to use the output file(calibration.table)
+### How to use the output file(calibration.table)
 
 For example in *squeezenet_v1_1.table*
 
@@ -75,6 +76,47 @@ Three steps to implement the *fire2/squeeze1x1* layer int8 convolution:
    ```
    top_blob_float32 = top_blob_int32 / [data_scale(0.1617) * weight_scale(92.028)] + bias_float32
    ```
+
+### Development version
+
+The purpose of this tool(caffe-int8-convert-tool-dev.py) is to test new features,such as mulit-channels quantization depend on group num,sparse calculation and so on.
+
+```
+python caffe-int8-convert-tool-dev.py -h
+usage: caffe-int8-convert-tool.py [-h] [--proto PROTO] [--model MODEL]
+                                  [--mean MEAN MEAN MEAN] [--norm NORM]
+                                  [--images IMAGES] [--output OUTPUT]
+                                  [--group GROUP] [--gpu GPU]
+
+find the pretrained caffe models int8 quantize scale value
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --proto PROTO         path to deploy prototxt.
+  --model MODEL         path to pretrained weights
+  --mean MEAN           value of mean
+  --norm NORM           value of normalize
+  --images IMAGES       path to calibration images
+  --output OUTPUT       path to output calibration table file
+  --group GROUP         enable the group scale
+  --gpu GPU             use gpu to forward
+python caffe-int8-convert-tool-dev.py --proto=test/models/mobilenet_v1.prototxt --model=test/models/mobilenet_v1.caffemodel --mean 103.94 116.78 123.68 --norm=0.017 --images=test/images/ --group=1
+```
+
+Although it's done,but the speed of group quanization is very slow......The difference from the release tool is that we try to get the int8_scale of bottom blob not the top blob. 
+
+### How to use the output file(calibration-dev.table)
+
+For example in *MobileNet_v1_dev.table*
+
+```
+conv1_param_0 138.066410735
+conv2_1/dw_param_0 92.028103407 // the convdw layer's weight scale is 92.028
+......
+conv1 49.709299
+conv2_1/dw 0.0 137.588665 108.390637 ...... // the convdw layer's bottom blob every group channel scale is 0.0 137.588665 108.390637 ......
+......
+```
 
 ## Accuracy and Performance
 
