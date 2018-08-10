@@ -81,7 +81,7 @@ Three steps to implement the *fire2/squeeze1x1* layer int8 convolution:
 
 The purpose of this tool(caffe-int8-convert-tool-dev.py) is to test new features,such as mulit-channels quantization depend on group num,sparse calculation and so on.
 
-This format is already supported in the [ncnn](https://github.com/Tencent/ncnn) latest version.I will do my best to transform some common network models.
+This format is already supported in the [ncnn](https://github.com/Tencent/ncnn) latest version.I will do my best to transform some common network models into [classification-dev](https://github.com/BUG1989/caffe-int8-convert-tools/tree/master/classification-dev)
 
 ```
 python caffe-int8-convert-tool-dev.py -h
