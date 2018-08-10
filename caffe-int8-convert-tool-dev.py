@@ -30,6 +30,7 @@ import sys,os
 import caffe
 import caffe.proto.caffe_pb2 as caffe_pb2
 import time
+import datetime
 from google.protobuf import text_format
 
 
@@ -512,6 +513,10 @@ def main():
     """
     main function
     """
+
+    # time start
+    time_start = datetime.datetime.now()
+
     print(args)
 
     if args.proto == None or args.model == None or args.mean == None or args.images == None:
@@ -565,7 +570,10 @@ def main():
     # save the calibration tables,best wish for your INT8 inference have low accuracy loss :)
     save_calibration_file(calibration_path)
 
-    print("\nCaffe Int8 Calibration table create success,best wish for your INT8 inference has a low accuracy loss...\(^▽^)/...2333...")
+    # time end
+    time_end = datetime.datetime.now()
+
+    print("\nCaffe Int8 Calibration table create success, it's cost %s, best wish for your INT8 inference has a low accuracy loss...\(^▽^)/...2333..." % (time_end - time_start))
 
 if __name__ == "__main__":
     main()

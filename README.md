@@ -46,13 +46,13 @@ Pay attention to the type of images,it is just the original image format,such as
 For example in *squeezenet_v1_1.table*
 
 ```
-conv1_param_0 138.066410735
-fire2/squeeze1x1_param_0 92.028103407 // the conv layer's weight scale is 92.028
+conv1_param_0 138.066410
+fire2/squeeze1x1_param_0 92.028103 // the conv layer's weight scale is 92.028
 ......
-data 0.841264989609
-conv1 0.295743466455
-pool1 0.161700784564  // the pool layer's top blob scale is 0.1617
-fire2/squeeze1x1 0.0893839724101 // the conv layer's top blob scale is 0.0893
+data 0.841264
+conv1 0.295743
+pool1 0.161700  // the pool layer's top blob scale is 0.1617
+fire2/squeeze1x1 0.089383 // the conv layer's top blob scale is 0.0893
 ......
 ```
 
@@ -80,6 +80,8 @@ Three steps to implement the *fire2/squeeze1x1* layer int8 convolution:
 ### Development version
 
 The purpose of this tool(caffe-int8-convert-tool-dev.py) is to test new features,such as mulit-channels quantization depend on group num,sparse calculation and so on.
+
+This format is already supported in the [ncnn](https://github.com/Tencent/ncnn) latest version.I will do my best to transform some common network models.
 
 ```
 python caffe-int8-convert-tool-dev.py -h
@@ -110,11 +112,11 @@ Although it's done,but the speed of group quanization is very slow......The diff
 For example in *MobileNet_v1_dev.table*
 
 ```
-conv1_param_0 138.066410735
-conv2_1/dw_param_0 92.028103407 // the convdw layer's weight scale is 92.028
+conv1_param_0 156.639840
+conv2_1/dw_param_0 0 72.129143 149.919382 // the convdw layer's weight scale every group is 0.0 72.129 149.919 ......
 ......
-conv1 49.709299
-conv2_1/dw 0.0 137.588665 108.390637 ...... // the convdw layer's bottom blob every group channel scale is 0.0 137.588665 108.390637 ......
+conv1 49.466518
+conv2_1/dw 0 123.720796 48.705349 ...... // the convdw layer's bottom blob every group channel scale is 0.0 123.720 48.705 ......
 ......
 ```
 
