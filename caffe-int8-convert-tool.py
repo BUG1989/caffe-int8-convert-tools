@@ -157,7 +157,7 @@ def threshold_distribution(distribution, target_bin=128):
         quantize_distribution[i] += distribution[j]
     # ************************ threshold ************************
 
-    # ************************ quantzie ************************
+    # ************************ quantize ************************
     expand_distribution = np.zeros(threshold, dtype=np.float32)
 
     for i in range(0, target_bin):
@@ -195,7 +195,7 @@ def threshold_distribution(distribution, target_bin=128):
       for j in range(left_upper, right_lower):
         if (distribution[j] != 0):
           expand_distribution[j] += expand_value
-    # ************************ quantzie ************************
+    # ************************ quantize ************************
 
     kl_divergence = compute_kl_divergence(t_distribution, expand_distribution)
 
