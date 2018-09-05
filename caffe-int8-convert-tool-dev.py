@@ -144,13 +144,6 @@ class QuantizeLayer:
                 self.blob_scale[i] = QUANTIZE_NUM / threshold
                 print("%-20s group : %-5d bin : %-8d threshold : %-10f interval : %-10f scale : %-10f" % (self.name, i, threshold_bin, threshold, self.blob_distubution_interval[i], self.blob_scale[i]))
 
-    def display_sparse_info(self):
-        count = 0
-        for i in range(self.group_num):
-            if self.group_zero[i] != 0:
-                count += 1
-        print("%-20s group total : %-8d group sparse : %-8d ratio : %-6.2f " % (self.name, self.group_num, count, count / float(self.group_num) * 100))
-
     def save_calibration(file_path):
         pass
 
@@ -401,33 +394,6 @@ def weight_quantize(net, net_file, group_on):
                 quantize_layer_lists.append(quanitze_layer)
 
     return None                
-
-
-def activation_sparse(net, transformer, images_files):
-    """
-    Activation bottom blob sparse analyze
-    Args:
-        net: the instance of Caffe inference
-        transformer: 
-        images_files: calibration dataset
-    Returns:  
-        none
-    """    
-    print("\nAnalyze the sparse info of the Activation:")
-    # run float32 inference on calibration dataset to find the activations range
-    for i , image in enumerate(images_files):
-        net_forward(net, image, transformer)
-        print("loop stage 1 : %d" % (i))
-        # find max threshold
-        for layer in quantize_layer_lists:
-            blob = net.blobs[layer.blob_name].data[0].flatten()
-            layer.initial_blob_max(blob)
-    
-    # calculate statistic blob scope and interval distribution
-    for layer in quantize_layer_lists:
-        layer.initial_blob_distubution_interval()
-
-    return None
 
 
 def activation_quantize(net, transformer, images_files):

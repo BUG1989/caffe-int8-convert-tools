@@ -14,7 +14,50 @@ For details, please read the following PDF:
 
 ## HowTo
 
-### Release version
+### New version
+
+The purpose of this tool(caffe-int8-convert-tool-dev.py) is to test new features,such as mulit-channels quantization depend on group num.
+
+This format is already supported in the [ncnn](https://github.com/Tencent/ncnn) latest version.I will do my best to transform some common network models into [classification-dev](https://github.com/BUG1989/caffe-int8-convert-tools/tree/master/classification-dev)
+
+```
+python caffe-int8-convert-tool-dev.py -h
+usage: caffe-int8-convert-tool.py [-h] [--proto PROTO] [--model MODEL]
+                                  [--mean MEAN MEAN MEAN] [--norm NORM]
+                                  [--images IMAGES] [--output OUTPUT]
+                                  [--group GROUP] [--gpu GPU]
+
+find the pretrained caffe models int8 quantize scale value
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --proto PROTO         path to deploy prototxt.
+  --model MODEL         path to pretrained weights
+  --mean MEAN           value of mean
+  --norm NORM           value of normalize
+  --images IMAGES       path to calibration images
+  --output OUTPUT       path to output calibration table file
+  --group GROUP         enable the group scale
+  --gpu GPU             use gpu to forward
+python caffe-int8-convert-tool-dev.py --proto=test/models/mobilenet_v1.prototxt --model=test/models/mobilenet_v1.caffemodel --mean 103.94 116.78 123.68 --norm=0.017 --images=test/images/ output=mobilenet_v1.table --group=1
+```
+
+Although it's done,but the speed of group quanization is very slow......The difference from the old tool is that we try to get the int8_scale of bottom blob not the top blob. 
+
+### How to use the output file(calibration-dev.table)
+
+For example in *MobileNet_v1_dev.table*
+
+```
+conv1_param_0 156.639840
+conv2_1/dw_param_0 0 72.129143 149.919382 // the convdw layer's weight scale every group is 0.0 72.129 149.919 ......
+......
+conv1 49.466518
+conv2_1/dw 0 123.720796 48.705349 ...... // the convdw layer's bottom blob every group channel scale is 0.0 123.720 48.705 ......
+......
+```
+
+### Old version
 
 ```
 $ python caffe-int8-convert-tool.py --help
@@ -77,49 +120,6 @@ Three steps to implement the *fire2/squeeze1x1* layer int8 convolution:
    top_blob_float32 = top_blob_int32 / [data_scale(0.1617) * weight_scale(92.028)] + bias_float32
    ```
 
-### Development version
-
-The purpose of this tool(caffe-int8-convert-tool-dev.py) is to test new features,such as mulit-channels quantization depend on group num,sparse calculation and so on.
-
-This format is already supported in the [ncnn](https://github.com/Tencent/ncnn) latest version.I will do my best to transform some common network models into [classification-dev](https://github.com/BUG1989/caffe-int8-convert-tools/tree/master/classification-dev)
-
-```
-python caffe-int8-convert-tool-dev.py -h
-usage: caffe-int8-convert-tool.py [-h] [--proto PROTO] [--model MODEL]
-                                  [--mean MEAN MEAN MEAN] [--norm NORM]
-                                  [--images IMAGES] [--output OUTPUT]
-                                  [--group GROUP] [--gpu GPU]
-
-find the pretrained caffe models int8 quantize scale value
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --proto PROTO         path to deploy prototxt.
-  --model MODEL         path to pretrained weights
-  --mean MEAN           value of mean
-  --norm NORM           value of normalize
-  --images IMAGES       path to calibration images
-  --output OUTPUT       path to output calibration table file
-  --group GROUP         enable the group scale
-  --gpu GPU             use gpu to forward
-python caffe-int8-convert-tool-dev.py --proto=test/models/mobilenet_v1.prototxt --model=test/models/mobilenet_v1.caffemodel --mean 103.94 116.78 123.68 --norm=0.017 --images=test/images/ --group=1
-```
-
-Although it's done,but the speed of group quanization is very slow......The difference from the release tool is that we try to get the int8_scale of bottom blob not the top blob. 
-
-### How to use the output file(calibration-dev.table)
-
-For example in *MobileNet_v1_dev.table*
-
-```
-conv1_param_0 156.639840
-conv2_1/dw_param_0 0 72.129143 149.919382 // the convdw layer's weight scale every group is 0.0 72.129 149.919 ......
-......
-conv1 49.466518
-conv2_1/dw 0 123.720796 48.705349 ...... // the convdw layer's bottom blob every group channel scale is 0.0 123.720 48.705 ......
-......
-```
-
 ## Accuracy and Performance
 
 We used ImageNet2012 Dataset to complete some experiments.
@@ -157,6 +157,10 @@ The following table show the speedup between Float32 and Int8 inference.It shoul
 | Float32  | 382             | 568          | 392          | 1662      | 1869     | 1120            |
 | Int8     | 242             | 369          | 311          | 1159      | 1159     | 701             |
 | Ratio    | x1.30           | x1.41        | x1.28        | x1.43     | x1.61    | x1.47           |
+
+## Sparse Connection Tool(*experimental* *stage*)
+
+I tried to analyze the sparse connection of the CNN model.Using this tool,I've got some data([sparse-connection](https://github.com/BUG1989/caffe-int8-convert-tools/tree/master/sparse-connection)), and I hope you'll use it.
 
 ## Contributor
 
