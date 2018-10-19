@@ -12,6 +12,10 @@ For details, please read the following PDF:
 
 [8-bit Inference with TensorRT](http://on-demand.gputechconf.com/gtc/2017/presentation/s7310-8-bit-inference-with-tensorrt.pdf) 
 
+An introduction to the principles of a Chinese blog written by my friend:
+
+[The implement of Int8 quantize base on TensorRT](https://note.youdao.com/share/?id=829ba6cabfde990e2832b048a4f492b3&type=note#/)
+
 ## HowTo
 
 ### New version
@@ -39,10 +43,10 @@ optional arguments:
   --output OUTPUT       path to output calibration table file
   --group GROUP         enable the group scale
   --gpu GPU             use gpu to forward
-python caffe-int8-convert-tool-dev.py --proto=test/models/mobilenet_v1.prototxt --model=test/models/mobilenet_v1.caffemodel --mean 103.94 116.78 123.68 --norm=0.017 --images=test/images/ output=mobilenet_v1.table --group=1
+python caffe-int8-convert-tool-dev.py --proto=test/models/mobilenet_v1.prototxt --model=test/models/mobilenet_v1.caffemodel --mean 103.94 116.78 123.68 --norm=0.017 --images=test/images/ output=mobilenet_v1.table --gpu=1
 ```
 
-Although it's done,but the speed of group quanization is very slow......The difference from the old tool is that we try to get the int8_scale of bottom blob not the top blob. 
+Although it's done,but the speed of group quanization is very slow ......The difference from the old tool is that we try to get the int8_scale of bottom blob not the top blob. 
 
 ### How to use the output file(calibration-dev.table)
 
@@ -128,27 +132,20 @@ We used ImageNet2012 Dataset to complete some experiments.
 | ------------------- | ----------------------------------------------------- |
 | Calibration Dataset | ILSVRC2012_img_test   1k                              |
 | Test Dataset        | ILSVRC2012_img_val     5k                             |
-| Framework           | ncnn-int8                                             |
+| Framework           | ncnn                                                  |
 | Support Layer       | Convolution3x3,Convolution1x1,ConvolutionDepthwise3x3 |
 
 The following table show the Top1 and Top5 different between Float32 and Int8 inference.
 
-|                 | FP32   |        | INT8      |           |
-| --------------- | ------ | ------ | --------- | --------- |
-| NETWORK         | Top1   | Top5   | Top1      | Top5      |
-| SqueezeNet v1.1 | 57.86% | 79.86% | 57.36%    | 79.84%    |
-| MobileNet v1    | 67.78% | 87.62% | 64.92%    | 85.22%    |
-| MobileNet v2    | 70.20% | 89.20% | 69.00%    | 88.04%    |
-| GoogleNet v1    | 67.70% | 88.32% | 67.64%    | 88.26%    |
-| ResNet-18       | 65.50% | 86.46% | 65.48%    | 86.44%    |
-| ResNet-50       | 71.68% | 89.94% | 71.38%    | 89.52%    |
-| NETWORK         | Top1   | Top5   | Diff Top1 | Diff Top5 |
-| SqueezeNet v1.1 | 57.86% | 79.86% | 0.50%     | 0.02%     |
-| MobileNet v1    | 67.78% | 87.62% | 2.86%     | 2.40%     |
-| MobileNet v2    | 70.20% | 89.20% | 1.06%     | 1.16%     |
-| GoogleNet v1    | 67.70% | 88.32% | 0.06%     | 0.06%     |
-| ResNet-18       | 65.50% | 86.46% | 0.02%     | 0.02%     |
-| ResNet-50       | 71.68% | 89.94% | 0.30%     | 0.32%     |
+|                 | FP32   |        | INT8   |        | Loss      |           |
+| --------------- | ------ | ------ | ------ | ------ | --------- | --------- |
+| NETWORK         | Top1   | Top5   | Top1   | Top5   | Diff Top1 | Diff Top5 |
+| SqueezeNet v1.1 | 57.86% | 79.86% | 57.36% | 79.84% | -0.50%    | -0.02%    |
+| MobileNet v1    | 67.78% | 87.62% | 64.92% | 85.22% | -2.86%    | -2.40%    |
+| MobileNet v2    | 70.20% | 89.20% | 69.00% | 88.04% | -1.06%    | -1.16%    |
+| GoogleNet v1    | 67.70% | 88.32% | 67.64% | 88.26% | -0.06%    | -0.06%    |
+| ResNet-18       | 65.50% | 86.46% | 65.48% | 86.44% | -0.02%    | -0.02%    |
+| ResNet-50       | 71.68% | 89.94% | 71.38% | 89.52% | -0.30%    | -0.32%    |
 
 The following table show the speedup between Float32 and Int8 inference.It should be noted that the winograd algorithm is not used in the Float32 inference.The Hardware Platform is Hisi3519(Cortex-A17@1.2GHz)
 
