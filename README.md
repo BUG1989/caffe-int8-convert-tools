@@ -38,7 +38,7 @@ optional arguments:
   --proto PROTO         path to deploy prototxt.
   --model MODEL         path to pretrained weights
   --mean MEAN           value of mean
-  --norm NORM           value of normalize
+  --norm NORM           value of normalize(scale value)
   --images IMAGES       path to calibration images
   --output OUTPUT       path to output calibration table file
   --group GROUP         enable the group scale
