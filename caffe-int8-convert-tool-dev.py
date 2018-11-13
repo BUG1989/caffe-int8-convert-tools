@@ -32,7 +32,10 @@ import caffe.proto.caffe_pb2 as caffe_pb2
 import time
 import datetime
 from google.protobuf import text_format
+from scipy import stats
 
+np.set_printoptions(threshold='nan')
+np.set_printoptions(suppress=True)
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -76,12 +79,12 @@ class QuantizeLayer:
         self.name = name
         self.blob_name = blob_name
         self.group_num = group_num
-        self.weight_scale = [0 for x in range(0, group_num)]
-        self.blob_max = [0 for x in range(0, group_num)]
-        self.blob_distubution_interval = [0 for x in range(0, group_num)]
-        self.blob_distubution = [[0 for col in range(INTERVAL_NUM)] for row in range(group_num)]
-        self.blob_scale = [1 for x in range(0, group_num)]
-        self.group_zero = [0 for x in range(0, group_num)]
+        self.weight_scale = np.zeros(group_num)
+        self.blob_max = 0.0
+        self.blob_distubution_interval = 0.0
+        self.blob_distubution = np.zeros(INTERVAL_NUM)
+        self.blob_scale = 1.0
+        self.group_zero = np.zeros(group_num)
 
     def quantize_weight(self, weight_data):
         # spilt the weight data by group num
@@ -98,193 +101,114 @@ class QuantizeLayer:
             print("%-20s group : %-5d max_val : %-10f scale_val : %-10f" % (self.name + "_param0", i, threshold, self.weight_scale[i]))
 
     def initial_blob_max(self, blob_data):
-        # spilt the blob data by group num
-        blob_group_data = np.array_split(blob_data, self.group_num)
-        # interval for per bottom blob group channel
-        for i, group_data in enumerate(blob_group_data):
-            max_val = np.max(group_data)
-            min_val = np.min(group_data)
-            self.blob_max[i] = max(self.blob_max[i], max(abs(max_val), abs(min_val)))
+        # get the max value of blob
+        max_val = np.max(blob_data)
+        min_val = np.min(blob_data)
+        self.blob_max = max(self.blob_max, max(abs(max_val), abs(min_val)))
 
     def initial_blob_distubution_interval(self):
-        for i in range(0, self.group_num):
-            if self.blob_max[i] < 0.000001:
-                self.blob_scale[i] = 0
-                self.group_zero[i] = 1
-                self.blob_distubution_interval[i] = 0
-            else:
-                self.blob_distubution_interval[i] = STATISTIC * self.blob_max[i] / INTERVAL_NUM
-            print("%-20s group : %-5d max_val : %-10.8f distribution_intervals : %-10.8f" % (self.name, i, self.blob_max[i], self.blob_distubution_interval[i]))
+        self.blob_distubution_interval = STATISTIC * self.blob_max / INTERVAL_NUM
+        print("%-20s max_val : %-10.8f distribution_intervals : %-10.8f" % (self.name, self.blob_max, self.blob_distubution_interval))
 
     def initial_histograms(self, blob_data):
-        # spilt the blob data by group num
-        blob_group_data = np.array_split(blob_data, self.group_num)
-        # interval for per bottom blob group channel
-        for i, group_data in enumerate(blob_group_data):    
-            if self.blob_scale[i] == 0:
-                continue
-            else:    
-                # collect histogram of every group channel blob
-                add_to_distribution(group_data, self.blob_distubution[i], self.blob_distubution_interval[i])
+        # collect histogram of every group channel blob
+        th = self.blob_max
+        hist, hist_edge = np.histogram(blob_data, bins=INTERVAL_NUM, range=(0, th))
+        self.blob_distubution += hist
 
     def quantize_blob(self):
-        # calculate threshold
-        for i in range(0, self.group_num):
-            # sparse DepthwiseConvolution
-            if self.blob_scale[i] == 0:
-                print("%-20s group : %-5d bin : %-8d threshold : %-10f interval : %-10f scale : %-10f" % (self.name, i, 0, 0, self.blob_distubution_interval[i], self.blob_scale[i]))
-            else:
-                # normalize distributions
-                normalize_distribution(self.blob_distubution[i])    
-                distribution = np.array(self.blob_distubution[i])
-                # pick threshold which minimizes KL divergence
-                threshold_bin = threshold_distribution(distribution) 
-                threshold = (threshold_bin + 0.5) * self.blob_distubution_interval[i]
-                # get the activation calibration value
-                self.blob_scale[i] = QUANTIZE_NUM / threshold
-                print("%-20s group : %-5d bin : %-8d threshold : %-10f interval : %-10f scale : %-10f" % (self.name, i, threshold_bin, threshold, self.blob_distubution_interval[i], self.blob_scale[i]))
+        # calculate threshold  
+        distribution = np.array(self.blob_distubution)
+        # pick threshold which minimizes KL divergence
+        threshold_bin = threshold_distribution(distribution) 
+        threshold = (threshold_bin + 0.5) * self.blob_distubution_interval
+        # get the activation calibration value
+        self.blob_scale = QUANTIZE_NUM / threshold
+        print("%-20s bin : %-8d threshold : %-10f interval : %-10f scale : %-10f" % (self.name, threshold_bin, threshold, self.blob_distubution_interval, self.blob_scale))
 
-    def save_calibration(file_path):
-        pass
-
-
-
-def add_to_distribution(blob, distribution, interval):
+    
+def _smooth_distribution(p, eps=0.0001):
+    """Given a discrete distribution (may have not been normalized to 1),
+    smooth it by replacing zeros with eps multiplied by a scaling factor and taking the
+    corresponding amount off the non-zero values.
+    Ref: http://web.engr.illinois.edu/~hanj/cs412/bk3/KL-divergence.pdf
     """
-    add the distribution
-    Args:
-        blob: the output blob of caffe layer
-        distribution: a list ,size is 2048
-        interval: a float number
-    Returns:
-        none
-    """     
-    max_index = len(distribution) - 1
-
-    indexes = np.minimum((np.abs(blob[blob!=0]) / interval).astype(np.int32), max_index)
-    for index in indexes:
-        distribution[index] = distribution[index] + 1
-
-
-def normalize_distribution(distribution):
-    """
-    Normalize the input list
-    Args:
-        distribution: a list ,size is 2048
-    Returns:
-        none
-    """     
-    num_sum = sum(distribution)
-    for i, data in enumerate(distribution):
-        distribution[i] = data / float(num_sum)
-
-
-def compute_kl_divergence(dist_a, dist_b):
-    """
-    Returen kl_divergence between 
-    Args:
-        dist_a: list original
-        dist_b: list expand
-    Returns:
-        kl_divergence: float, kl_divergence 
-    """ 
-    nonzero_inds = dist_a != 0
-    return np.sum(dist_a[nonzero_inds] * np.log(dist_a[nonzero_inds] / dist_b[nonzero_inds]))
-
-
+    is_zeros = (p == 0).astype(np.float32)
+    is_nonzeros = (p != 0).astype(np.float32)
+    n_zeros = is_zeros.sum()
+    n_nonzeros = p.size - n_zeros
+    if not n_nonzeros:
+        raise ValueError('The discrete probability distribution is malformed. All entries are 0.')
+    eps1 = eps * float(n_zeros) / float(n_nonzeros)
+    assert eps1 < 1.0, 'n_zeros=%d, n_nonzeros=%d, eps1=%f' % (n_zeros, n_nonzeros, eps1)
+    hist = p.astype(np.float32)
+    hist += eps * is_zeros + (-eps1) * is_nonzeros
+    assert (hist <= 0).sum() == 0
+    return hist
+    
+    
 def threshold_distribution(distribution, target_bin=128):
     """
-    Returen the best cut off num of bin 
+    Return the best threshold value. 
+    Ref: https://github.com//apache/incubator-mxnet/blob/master/python/mxnet/contrib/quantization.py
     Args:
         distribution: list, activations has been processed by histogram and normalize,size is 2048
         target_bin: int, the num of bin that is used by quantize, Int8 default value is 128
     Returns:
         target_threshold: int, num of bin with the minimum KL 
     """   
-    target_threshold = target_bin
-    min_kl_divergence = 1000
+    distribution = distribution[1:]
     length = distribution.size
-
-    quantize_distribution = np.zeros(target_bin)
-
-    threshold_sum = 0.0
     threshold_sum = sum(distribution[target_bin:])
+    kl_divergence = np.zeros(length - target_bin)
 
     for threshold in range(target_bin, length):
-        t_distribution = copy.deepcopy(distribution[:threshold])
-        t_distribution[threshold-1] = t_distribution[threshold-1] + threshold_sum
+        sliced_nd_hist = copy.deepcopy(distribution[:threshold])
+
+        # generate reference distribution p
+        p = sliced_nd_hist.copy()
+        p[threshold-1] += threshold_sum
         threshold_sum = threshold_sum - distribution[threshold]
 
-        # ************************ threshold  ************************
-        quantize_distribution = np.zeros(target_bin)
-        num_per_bin = threshold / target_bin
-        for i in range(0, target_bin):
-            start = i * num_per_bin
-            end = start + num_per_bin
+        # is_nonzeros[k] indicates whether hist[k] is nonzero
+        is_nonzeros = (p != 0).astype(np.int64)
+        # 
+        quantized_bins = np.zeros(target_bin, dtype=np.int64)
+        # calculate how many bins should be merged to generate quantized distribution q
+        num_merged_bins = sliced_nd_hist.size // target_bin
+        
+        # merge hist into num_quantized_bins bins
+        for j in range(target_bin):
+            start = j * num_merged_bins
+            stop = start + num_merged_bins
+            quantized_bins[j] = sliced_nd_hist[start:stop].sum()
+        quantized_bins[-1] += sliced_nd_hist[target_bin * num_merged_bins:].sum()
+        
+        # expand quantized_bins into p.size bins
+        q = np.zeros(sliced_nd_hist.size, dtype=np.float64)
+        for j in range(target_bin):
+            start = j * num_merged_bins
+            if j == target_bin - 1:
+                stop = -1
+            else:
+                stop = start + num_merged_bins
+            norm = is_nonzeros[start:stop].sum()
+            if norm != 0:
+                q[start:stop] = float(quantized_bins[j]) / float(norm)
+        q[p == 0] = 0
+        # p = _smooth_distribution(p) # with some bugs, need to fix
+        # q = _smooth_distribution(q)
+        p[p == 0] = 0.0001
+        q[q == 0] = 0.0001
+        
+        # calculate kl_divergence between q and p
+        kl_divergence[threshold - target_bin] = stats.entropy(p, q)
 
-            left_upper = (int)(math.ceil(start))
-            if(left_upper > start):
-                left_scale = left_upper - start
-                quantize_distribution[i] += left_scale * distribution[left_upper - 1]
+    min_kl_divergence = np.argmin(kl_divergence)
+    threshold_value = min_kl_divergence + target_bin
 
-            right_lower = (int)(math.floor(end))
-            if (right_lower < end):
-                right_scale = end - right_lower
-                quantize_distribution[i] += right_scale * distribution[right_lower]
+    return threshold_value
 
-            for j in range(left_upper, right_lower):
-                quantize_distribution[i] += distribution[j]
-        # ************************ threshold ************************
-
-        # ************************ quantize ************************
-        expand_distribution = np.zeros(threshold, dtype=np.float32)
-
-        for i in range(0, target_bin):
-            start = i * num_per_bin
-            end = start + num_per_bin
-
-            count = 0
-
-            left_upper = (int)(math.ceil(start))
-            left_scale = 0.0
-            if (left_upper > start):
-                left_scale = left_upper - start
-                if (distribution[left_upper - 1] != 0):
-                        count += left_scale
-
-            right_lower = (int)(math.floor(end))
-            right_scale = 0.0
-            if (right_lower < end):
-                right_scale = end - right_lower
-                if (distribution[right_lower] != 0):
-                    count += right_scale
-
-            for j in range(left_upper, right_lower):
-                if (distribution[j] != 0):
-                    count = count + 1
-
-            if count == 0:
-                continue;
-            expand_value = quantize_distribution[i] / count
-
-            if (left_upper > start):
-                if (distribution[left_upper - 1] != 0):
-                    expand_distribution[left_upper - 1] += expand_value * left_scale
-            if (right_lower < end):
-                if (distribution[right_lower] != 0):
-                    expand_distribution[right_lower] += expand_value * right_scale
-            for j in range(left_upper, right_lower):
-                if (distribution[j] != 0):
-                    expand_distribution[j] += expand_value
-        # ************************ quantize ************************
-
-        kl_divergence = compute_kl_divergence(t_distribution, expand_distribution)
-
-        if kl_divergence < min_kl_divergence:
-            min_kl_divergence = kl_divergence
-            target_threshold = threshold
-
-    return target_threshold
 
 
 def net_forward(net, image_path, transformer):
@@ -302,10 +226,7 @@ def net_forward(net, image_path, transformer):
     # transformer.preprocess the image
     net.blobs['data'].data[...] = transformer.preprocess('data',image)
     # net forward
-    start = time.clock()
     output = net.forward()
-    end = time.clock()
-    print("%s forward time : %.3f s" % (image_path, end - start))
 
 
 def file_name(file_dir):
@@ -374,10 +295,6 @@ def weight_quantize(net, net_file, group_on):
         text_format.Merge(f.read(), params)
 
     for i, layer in enumerate(params.layer):
-        if i == 0:
-            if layer.type != "Input":
-                raise ValueError("First layer should be input")
-
         # find the convolution 3x3 and 1x1 layers to get out the weight_scale
         if(layer.type == "Convolution" or layer.type == "ConvolutionDepthwise"):
             kernel_size = layer.convolution_param.kernel_size[0]
@@ -411,12 +328,14 @@ def activation_quantize(net, transformer, images_files):
     print("\nQuantize the Activation:")
     # run float32 inference on calibration dataset to find the activations range
     for i , image in enumerate(images_files):
+        # inference
         net_forward(net, image, transformer)
-        print("loop stage 1 : %d" % (i))
         # find max threshold
         for layer in quantize_layer_lists:
             blob = net.blobs[layer.blob_name].data[0].flatten()
             layer.initial_blob_max(blob)
+        if i % 100 == 0:
+            print("loop stage 1 : %d/%d" % (i, len(images_files)))
     
     # calculate statistic blob scope and interval distribution
     for layer in quantize_layer_lists:
@@ -427,13 +346,11 @@ def activation_quantize(net, transformer, images_files):
     print("\nCollect histograms of activations:")
     for i, image in enumerate(images_files):
         net_forward(net, image, transformer)
-        print("loop stage 2 : %d" % (i))    
-        start = time.clock() 
         for layer in quantize_layer_lists:
             blob = net.blobs[layer.blob_name].data[0].flatten()
             layer.initial_histograms(blob)
-        end = time.clock()
-        print("add cost %.3f s" % (end - start))
+        if i % 100 == 0:
+            print("loop stage 2 : %d/%d" % (i, len(images_files)))          
 
     # calculate threshold with KL divergence
     for layer in quantize_layer_lists:
@@ -455,9 +372,7 @@ def save_calibration_file(calibration_path):
 
     # save bottom blob scales
     for layer in quantize_layer_lists:
-        save_string = layer.name
-        for i in range(layer.group_num):
-            save_string = save_string + " " + str(layer.blob_scale[i])
+        save_string = layer.name + " " + str(layer.blob_scale)
         save_temp.append(save_string)
 
     # save into txt file
@@ -466,13 +381,27 @@ def save_calibration_file(calibration_path):
 
     calibration_file.close()
 
+    # save calibration logs
+    save_temp_log = []
+    calibration_file_log = open(calibration_path + ".log", 'w')
+    for layer in quantize_layer_lists:
+        save_string = layer.name + ": value range 0 - " + str(layer.blob_max) \
+                                 + ", interval " + str(layer.blob_distubution_interval) \
+                                 + ", interval num " + str(INTERVAL_NUM) + "\n" \
+                                 + str(layer.blob_distubution.astype(dtype=np.int64))
+        save_temp_log.append(save_string)
+
+    # save into txt file
+    for data in save_temp_log:
+        calibration_file_log.write(data + "\n")
+
 
 def usage_info():
     """
     usage info
     """
     print("Input params is illegal...╮(╯3╰)╭")
-    print("try it again:\n python caffe-int8-scale-tools.py -h")
+    print("try it again:\n python caffe-int8-scale-tools-dev.py -h")
 
 
 def main():
@@ -527,7 +456,6 @@ def main():
     images_files = file_name(images_path)
 
     # quanitze kernel weight of the caffemodel to find it's calibration table
-    # weight_quantize(net, net_file)
     weight_quantize(net, net_file, group_on)
 
     # quantize activation value of the caffemodel to find it's calibration table
