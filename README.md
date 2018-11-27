@@ -120,8 +120,8 @@ The following table show the Top1 and Top5 different between Float32 and Int8 in
 
 | Models           | FP32  | INT8  | Loss   |
 | ---------------- | ----- | ----- | ------ |
-| SqueezeNet SSD   | 61.80 | 60.40 | -1.4   |
-| MobileNet_v1 SSD | 70.49 | 60.38 | -10.11 |
+| SqueezeNet SSD   | 61.80 | 60.40 | -1.40  |
+| MobileNet_v1 SSD | 70.49 | 68.85 | -1.64  |
 
 #### Speed up
 
