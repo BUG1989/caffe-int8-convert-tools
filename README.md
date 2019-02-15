@@ -139,7 +139,7 @@ I tried to analyze the sparse connection of the CNN model.Using this tool,I've g
 
 ## Contributor
 
-Thanks to our company [SenseNets](http://www.sensenets.com/home/) to support the open source project,and NVIDIA for providing the principle of correlation entropy,and ncnn's author [nihui](https://github.com/nihui) sharing his neural network inference framework.
+Thanks to NVIDIA for providing the principle of correlation entropy,and ncnn's author [nihui](https://github.com/nihui) sharing his neural network inference framework.
 
 Thanks to the help from the following friends:
 
