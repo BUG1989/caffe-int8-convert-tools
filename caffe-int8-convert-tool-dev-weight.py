@@ -296,20 +296,18 @@ def weight_quantize(net, net_file, group_on):
         text_format.Merge(f.read(), params)
 
     for i, layer in enumerate(params.layer):
-        # find the convolution 3x3 and 1x1 layers to get out the weight_scale
+        # find the convolution layers to get out the weight_scale
         if(layer.type == "Convolution" or layer.type == "ConvolutionDepthwise"):
-            kernel_size = layer.convolution_param.kernel_size[0]
-            if(kernel_size == 3 or kernel_size == 1):
-                weight_blob = net.params[layer.name][0].data
-                # initial the instance of QuantizeLayer Class lists,you can use enable group quantize to generate int8 scale for each group layer.convolution_param.group
-                if (group_on == 1):
-                    quanitze_layer = QuantizeLayer(layer.name, layer.bottom[0], layer.convolution_param.num_output)
-                else:
-                    quanitze_layer = QuantizeLayer(layer.name, layer.bottom[0], 1)
-                # quantize the weight value
-                quanitze_layer.quantize_weight(weight_blob)
-                # add the quantize_layer into the save list
-                quantize_layer_lists.append(quanitze_layer)
+            weight_blob = net.params[layer.name][0].data
+            # initial the instance of QuantizeLayer Class lists,you can use enable group quantize to generate int8 scale for each group layer.convolution_param.group
+            if (group_on == 1):
+                quanitze_layer = QuantizeLayer(layer.name, layer.bottom[0], layer.convolution_param.num_output)
+            else:
+                quanitze_layer = QuantizeLayer(layer.name, layer.bottom[0], 1)
+            # quantize the weight value
+            quanitze_layer.quantize_weight(weight_blob)
+            # add the quantize_layer into the save list
+            quantize_layer_lists.append(quanitze_layer)
 
     return None                
 
