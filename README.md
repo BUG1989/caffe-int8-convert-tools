@@ -124,7 +124,7 @@ The following table show the Top1 and Top5 different between Float32 and Int8 in
 
 The following table show the speedup between Float32 and Int8 inference.It should be noted that the winograd algorithm is enable in the Float32 and Int8 inference.The Hardware Platform is Hisi3519(Cortex-A17@880MHz)
 
-| Uint(ms) | SqueezeNet v1.1 | MobileNet v1 | GoogleNet | ResNet18 | MobileNetv1 SSD | MobileNetv1 SSD |
+| Uint(ms) | SqueezeNet v1.1 | MobileNet v1 | GoogleNet | ResNet18 | MobileNetv1 SSD | SqueezeNet SSD  |
 | -------- | --------------- | ------------ | --------- | -------- | --------------- | --------------- |
 | Float32  | 282             | 490          | 1107      | 985      | 970             | 610             |
 | Int8     | 204             | 369          | 940       | 757      | 620             | 560             |
