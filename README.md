@@ -127,8 +127,8 @@ The following table show the speedup between Float32 and Int8 inference.It shoul
 | Uint(ms) | SqueezeNet v1.1 | MobileNet v1 | GoogleNet | ResNet18 | MobileNetv1 SSD | SqueezeNet SSD  |
 | -------- | --------------- | ------------ | --------- | -------- | --------------- | --------------- |
 | Float32  | 282             | 490          | 1107      | 985      | 970             | 610             |
-| Int8     | 204             | 369          | 940       | 757      | 620             | 560             |
-| Ratio    | x1.38           | x1.33        | x1.18     | x1.31    | x1.56           | x1.09           |
+| Int8     | 204             | 369          | 813       | 695      | 620             | 560             |
+| Ratio    | x1.38           | x1.33        | x1.36     | x1.42    | x1.56           | x1.09           |
 
 #### Memory reduce
 
