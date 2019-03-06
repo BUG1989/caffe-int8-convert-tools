@@ -18,7 +18,7 @@ MXNet quantization implement:
 
 An introduction to the principles of a Chinese blog written by my friend:
 
-[The implement of Int8 quantize base on TensorRT](https://note.youdao.com/share/?id=829ba6cabfde990e2832b048a4f492b3&type=note#/)
+[The implement of Int8 quantize base on TensorRT](https://zhuanlan.zhihu.com/zhangxiaolongOptimization)
 
 ## HowTo
 
@@ -106,7 +106,9 @@ The following table show the Top1 and Top5 different between Float32 and Int8 in
 |                 | Top1   | Top5   | Top1   | Top5   | Diff Top1 | Diff Top5 |
 | SqueezeNet v1.1 | 57.78% | 79.88% | 57.82% | 79.84% | +0.04%    | -0.04%    |
 | MobileNet v1    | 67.26% | 87.92% | 66.74% | 87.43% | -0.52%    | -0.49%    |
-| ResNet-18       | 65.49% | 86.56% | 65.30% | 86.52% | -0.19%    | -0.04%    |
+| GoogleNet       | 68.50% | 88.84% | 68.62% | 88.68% | +0.12%    | -0.16%    |
+| ResNet18        | 65.49% | 86.56% | 65.30% | 86.52% | -0.19%    | -0.04%    |
+| ResNet50        | 71.80% | 89.90% | 71.76% | 90.06% | -0.04%    | +0.16%    |
 
 #### We used VOC0712,MSCOCO Dataset to complete some detection test.
 
