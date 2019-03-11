@@ -16,7 +16,7 @@ MXNet quantization implement:
 
 [Quantization module for generating quantized (INT8) models from FP32 models](https://github.com/apache/incubator-mxnet/blob/master/python/mxnet/contrib/quantization.py)
 
-An introduction to the principles of a Chinese blog written by my friend:
+An introduction to the principles of a Chinese blog written by my friend([bruce.zhang](https://github.com/bigbigzxl)):
 
 [The implement of Int8 quantize base on TensorRT](https://zhuanlan.zhihu.com/zhangxiaolongOptimization)
 
@@ -156,17 +156,13 @@ Storage Memory : mbytes
 | resnet18          | 44.6 | 11.2 |
 | googlenet_v1      | 26.6 | 6.72 |
 
-## Sparse Connection Tool(*experimental* *stage*)
-
-I tried to analyze the sparse connection of the CNN model.Using this tool,I've got some data([sparse-connection](https://github.com/BUG1989/caffe-int8-convert-tools/tree/master/sparse-connection)), and I hope you'll use it.
-
 ## Contributor
 
 Thanks to NVIDIA for providing the principle of correlation entropy,and ncnn's author [nihui](https://github.com/nihui) sharing his neural network inference framework.
 
 Thanks to the help from the following friends:
 
-Optimization Instructor : [Fugangping](https://github.com/fu1899)
+Optimization Instructor : [Fugangping](https://github.com/fu1899), [bruce.zhang](https://github.com/bigbigzxl)
 
 Algorithm : [xupengfeixupf](https://github.com/xupengfeixupf), [JansonZhu](https://github.com/JansonZhu), [wangxinwei](https://github.com/StarStyleSky), [lengmm](https://github.com/lengmm) 
 
