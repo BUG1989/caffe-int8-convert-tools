@@ -68,6 +68,7 @@ args, parser = parse_args()
 
 # global params
 QUANTIZE_NUM = 127
+QUANTIZE_WINOGRAND_NUM = 31
 STATISTIC = 1
 INTERVAL_NUM = 2048
 
@@ -87,7 +88,7 @@ class QuantizeLayer:
         self.blob_scale = 1.0
         self.group_zero = np.zeros(group_num)
 
-    def quantize_weight(self, weight_data):
+    def quantize_weight(self, weight_data, flag):
         # spilt the weight data by cout num
         blob_group_data = np.array_split(weight_data, self.group_num)
         for i, group_data in enumerate(blob_group_data):
@@ -98,7 +99,10 @@ class QuantizeLayer:
                 self.weight_scale[i] = 0
                 self.group_zero[i] = 1
             else:
-                self.weight_scale[i] = QUANTIZE_NUM / threshold
+                if(flag == True):
+                    self.weight_scale[i] = QUANTIZE_WINOGRAND_NUM / threshold
+                else:
+                    self.weight_scale[i] = QUANTIZE_NUM / threshold
             print("%-20s group : %-5d max_val : %-10f scale_val : %-10f" % (self.name + "_param0", i, threshold, self.weight_scale[i]))
 
     def initial_blob_max(self, blob_data):
@@ -305,7 +309,10 @@ def weight_quantize(net, net_file, group_on):
             else:
                 quanitze_layer = QuantizeLayer(layer.name, layer.bottom[0], 1)
             # quantize the weight value
-            quanitze_layer.quantize_weight(weight_blob)
+            if(layer.type == "Convolution" and layer.convolution_param.kernel_size[0] == 3 and layer.convolution_param.stride[0] == 1):
+                quanitze_layer.quantize_weight(weight_blob, True)
+            else:
+                quanitze_layer.quantize_weight(weight_blob, False)
             # add the quantize_layer into the save list
             quantize_layer_lists.append(quanitze_layer)
 
