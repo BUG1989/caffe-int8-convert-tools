@@ -29,8 +29,8 @@ The purpose of this tool(caffe-int8-convert-tool-dev.py) is to test new features
 This format is already supported in the [ncnn](https://github.com/Tencent/ncnn) latest version.I will do my best to transform some common network models into [classification-dev](https://github.com/BUG1989/caffe-int8-convert-tools/tree/master/classification-dev)
 
 ```
-python caffe-int8-convert-tool-dev.py -h
-usage: caffe-int8-convert-tool-dev.py [-h] [--proto PROTO] [--model MODEL]
+python caffe-int8-convert-tool-dev-weight.py -h
+usage: caffe-int8-convert-tool-dev-weight.py [-h] [--proto PROTO] [--model MODEL]
                                   [--mean MEAN MEAN MEAN] [--norm NORM]
                                   [--images IMAGES] [--output OUTPUT]
                                   [--group GROUP] [--gpu GPU]
@@ -45,9 +45,9 @@ optional arguments:
   --norm NORM           value of normalize(scale value)
   --images IMAGES       path to calibration images
   --output OUTPUT       path to output calibration table file
-  --group GROUP         enable the group scale(0:disable,1:enable,default:0)
+  --group GROUP         enable the group scale(0:disable,1:enable,default:1)
   --gpu GPU             use gpu to forward(0:disable,1:enable,default:0)
-python caffe-int8-convert-tool-dev.py --proto=test/models/mobilenet_v1.prototxt --model=test/models/mobilenet_v1.caffemodel --mean 103.94 116.78 123.68 --norm=0.017 --images=test/images/ output=mobilenet_v1.table --group=1 --gpu=1
+python caffe-int8-convert-tool-dev-weight.py --proto=test/models/mobilenet_v1.prototxt --model=test/models/mobilenet_v1.caffemodel --mean 103.94 116.78 123.68 --norm=0.017 --images=test/images/ output=mobilenet_v1.table --group=1 --gpu=1
 ```
 
 ### How to use the output file(calibration-dev.table)
@@ -55,7 +55,7 @@ python caffe-int8-convert-tool-dev.py --proto=test/models/mobilenet_v1.prototxt 
 For example in *MobileNet_v1_dev.table*
 
 ```
-conv1_param_0 156.639840
+conv1_param_0 0.0 3779.48337933 482.140562772 1696.53814502
 conv2_1/dw_param_0 0 72.129143 149.919382 // the convdw layer's weight scale every group is 0.0 72.129 149.919 ......
 ......
 conv1 49.466518
@@ -126,24 +126,24 @@ The following table show the Top1 and Top5 different between Float32 and Int8 in
 
 The following table show the speedup between Float32 and Int8 inference.It should be noted that the winograd algorithm is enable in the Float32 and Int8 inference.The Hardware Platform is Hisi3519(Cortex-A17@880MHz)
 
-| Uint(ms) | SqueezeNet v1.1 | MobileNet v1 | GoogleNet | ResNet18 | MobileNetv1 SSD | SqueezeNet SSD  |
-| -------- | --------------- | ------------ | --------- | -------- | --------------- | --------------- |
-| Float32  | 282             | 490          | 1107      | 985      | 970             | 610             |
-| Int8     | 204             | 369          | 813       | 695      | 620             | 560             |
-| Ratio    | x1.38           | x1.33        | x1.36     | x1.42    | x1.56           | x1.09           |
+| Uint(ms) | SqueezeNet v1.1 | MobileNet v1 | GoogleNet | ResNet18 | MobileNetv1 SSD | SqueezeNet SSD |
+| -------- | --------------- | ------------ | --------- | -------- | --------------- | -------------- |
+| Float32  | 282             | 490          | 1107      | 985      | 970             | 610            |
+| Int8     | 192             | 369          | 696       | 531      | 605             | 498            |
+| Ratio    | x1.46           | x1.33        | x1.59     | x1.85    | x1.60           | x1.22          |
 
 #### Memory reduce
 
 Runtime Memory : mbytes
 
-| Models            | fp32 | int8 |
-| ----------------- | ---- | ---- |
-| squeezenet_v1_1   | 50   | 30   |
-| mobilenet_v1      | 61   | 35   |
-| mobilenet_v1_ssd  | 90   | 45   |
-| squeezenet_v1_ssd | 210  | 70   |
-| resnet18          | 335  | 77   |
-| googlenet_v1      | 154  | 72   |
+| Models            | fp32-wino63 | int8-wino23 | int8-wino43 |
+| ----------------- | ----------- | ----------- | ----------- |
+| squeezenet_v1_1   | 50          | 30          | 32          |
+| mobilenet_v1      | 61          | 35          | 35          |
+| mobilenet_v1_ssd  | 90          | 45          | 45          |
+| squeezenet_v1_ssd | 210         | 70          | 94          |
+| resnet18          | 335         | 77          | 130         |
+| googlenet_v1      | 154         | 72          | 89          |
 
 Storage Memory : mbytes
 
