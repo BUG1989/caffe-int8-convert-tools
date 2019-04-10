@@ -309,7 +309,7 @@ def weight_quantize(net, net_file, group_on):
             else:
                 quanitze_layer = QuantizeLayer(layer.name, layer.bottom[0], 1)
             # quantize the weight value
-            if(layer.type == "Convolution" and layer.convolution_param.kernel_size[0] == 3 and layer.convolution_param.stride[0] == 1):
+            if(layer.type == "Convolution" and layer.convolution_param.kernel_size[0] == 3 and ((len(layer.convolution_param.stride) == 0) or layer.convolution_param.stride[0] == 1)):
                 quanitze_layer.quantize_weight(weight_blob, True)
             else:
                 quanitze_layer.quantize_weight(weight_blob, False)
