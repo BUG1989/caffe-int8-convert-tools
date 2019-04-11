@@ -85,6 +85,7 @@ class QuantizeLayer:
         self.blob_max = 0.0
         self.blob_distubution_interval = 0.0
         self.blob_distubution = np.zeros(INTERVAL_NUM)
+        self.blob_threshold = 0
         self.blob_scale = 1.0
         self.group_zero = np.zeros(group_num)
 
@@ -126,6 +127,7 @@ class QuantizeLayer:
         distribution = np.array(self.blob_distubution)
         # pick threshold which minimizes KL divergence
         threshold_bin = threshold_distribution(distribution) 
+        self.blob_threshold = threshold_bin
         threshold = (threshold_bin + 0.5) * self.blob_distubution_interval
         # get the activation calibration value
         self.blob_scale = QUANTIZE_NUM / threshold
@@ -308,9 +310,13 @@ def weight_quantize(net, net_file, group_on):
                 quanitze_layer = QuantizeLayer(layer.name, layer.bottom[0], layer.convolution_param.num_output)
             else:
                 quanitze_layer = QuantizeLayer(layer.name, layer.bottom[0], 1)
-            # quantize the weight value
+            # quantize the weight value using 6bit for conv3x3s1 layer to winograd F(4,3) 
             if(layer.type == "Convolution" and layer.convolution_param.kernel_size[0] == 3 and ((len(layer.convolution_param.stride) == 0) or layer.convolution_param.stride[0] == 1)):
-                quanitze_layer.quantize_weight(weight_blob, True)
+                if(layer.convolution_param.group != layer.convolution_param.num_output):
+                    quanitze_layer.quantize_weight(weight_blob, True)
+                else:
+                    quanitze_layer.quantize_weight(weight_blob, False)
+            # quantize the weight value using 8bit for another conv layers 
             else:
                 quanitze_layer.quantize_weight(weight_blob, False)
             # add the quantize_layer into the save list
@@ -393,7 +399,8 @@ def save_calibration_file(calibration_path):
     for layer in quantize_layer_lists:
         save_string = layer.name + ": value range 0 - " + str(layer.blob_max) \
                                  + ", interval " + str(layer.blob_distubution_interval) \
-                                 + ", interval num " + str(INTERVAL_NUM) + "\n" \
+                                 + ", interval num " + str(INTERVAL_NUM) \
+                                 + ", threshold num " + str(layer.blob_threshold) + "\n" \
                                  + str(layer.blob_distubution.astype(dtype=np.int64))
         save_temp_log.append(save_string)
 
