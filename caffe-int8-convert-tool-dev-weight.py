@@ -271,7 +271,7 @@ def network_prepare(net, mean, norm):
     
     # initial transformer
     transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})
-    # convert shape from RBG to BGR 
+    # convert hwc to cwh 
     transformer.set_transpose('data', (2,0,1))
     # load meanfile
     transformer.set_mean('data', img_mean)
