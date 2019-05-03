@@ -12,11 +12,6 @@ For details, please read the following PDF:
 
 [8-bit Inference with TensorRT](http://on-demand.gputechconf.com/gtc/2017/presentation/s7310-8-bit-inference-with-tensorrt.pdf) 
 
-<<<<<<< HEAD
-An introduction to the principles of a Chinese blog written by my friend:
-
-[The implement of Int8 quantize base on TensorRT](https://note.youdao.com/share/?id=829ba6cabfde990e2832b048a4f492b3&type=note#/)
-=======
 MXNet quantization implement:
 
 [Quantization module for generating quantized (INT8) models from FP32 models](https://github.com/apache/incubator-mxnet/blob/master/python/mxnet/contrib/quantization.py)
@@ -24,7 +19,6 @@ MXNet quantization implement:
 An introduction to the principles of a Chinese blog written by my friend([bruce.zhang](https://github.com/bigbigzxl)):
 
 [The implement of Int8 quantize base on TensorRT](https://zhuanlan.zhihu.com/zhangxiaolongOptimization)
->>>>>>> 527569f52d9475c04503448b60876bb889a1f22c
 
 ## HowTo
 
@@ -51,21 +45,11 @@ optional arguments:
   --norm NORM           value of normalize(scale value)
   --images IMAGES       path to calibration images
   --output OUTPUT       path to output calibration table file
-<<<<<<< HEAD
-  --group GROUP         enable the group scale
-  --gpu GPU             use gpu to forward
-python caffe-int8-convert-tool-dev.py --proto=test/models/mobilenet_v1.prototxt --model=test/models/mobilenet_v1.caffemodel --mean 103.94 116.78 123.68 --norm=0.017 --images=test/images/ output=mobilenet_v1.table --gpu=1
-```
-
-Although it's done,but the speed of group quanization is very slow ......The difference from the old tool is that we try to get the int8_scale of bottom blob not the top blob. 
-
-=======
   --group GROUP         enable the group scale(0:disable,1:enable,default:1)
   --gpu GPU             use gpu to forward(0:disable,1:enable,default:0)
 python caffe-int8-convert-tool-dev-weight.py --proto=test/models/mobilenet_v1.prototxt --model=test/models/mobilenet_v1.caffemodel --mean 103.94 116.78 123.68 --norm=0.017 --images=test/images/ output=mobilenet_v1.table --group=1 --gpu=1
 ```
 
->>>>>>> 527569f52d9475c04503448b60876bb889a1f22c
 ### How to use the output file(calibration-dev.table)
 
 For example in *MobileNet_v1_dev.table*
@@ -111,35 +95,6 @@ Three steps to implement the *conv1* layer int8 convolution:
 | Type                | Detail                                                |
 | ------------------- | ----------------------------------------------------- |
 | Calibration Dataset | ILSVRC2012_img_test   1k                              |
-<<<<<<< HEAD
-| Test Dataset        | ILSVRC2012_img_val     5k                             |
-| Framework           | ncnn                                                  |
-| Support Layer       | Convolution3x3,Convolution1x1,ConvolutionDepthwise3x3 |
-
-The following table show the Top1 and Top5 different between Float32 and Int8 inference.
-
-|                 | FP32   |        | INT8   |        | Loss      |           |
-| --------------- | ------ | ------ | ------ | ------ | --------- | --------- |
-| NETWORK         | Top1   | Top5   | Top1   | Top5   | Diff Top1 | Diff Top5 |
-| SqueezeNet v1.1 | 57.86% | 79.86% | 57.36% | 79.84% | -0.50%    | -0.02%    |
-| MobileNet v1    | 67.78% | 87.62% | 64.92% | 85.22% | -2.86%    | -2.40%    |
-| MobileNet v2    | 70.20% | 89.20% | 69.00% | 88.04% | -1.06%    | -1.16%    |
-| GoogleNet v1    | 67.70% | 88.32% | 67.64% | 88.26% | -0.06%    | -0.06%    |
-| ResNet-18       | 65.50% | 86.46% | 65.48% | 86.44% | -0.02%    | -0.02%    |
-| ResNet-50       | 71.68% | 89.94% | 71.38% | 89.52% | -0.30%    | -0.32%    |
-
-The following table show the speedup between Float32 and Int8 inference.It should be noted that the winograd algorithm is not used in the Float32 inference.The Hardware Platform is Hisi3519(Cortex-A17@1.2GHz)
-
-| Uint(ms) | SqueezeNet v1.1 | MobileNet v1 | MobileNet v2 | GoogleNet | ResNet18 | MobileNetv1 SSD |
-| -------- | --------------- | ------------ | ------------ | --------- | -------- | --------------- |
-| Float32  | 382             | 568          | 392          | 1662      | 1869     | 1120            |
-| Int8     | 242             | 369          | 311          | 1159      | 1159     | 701             |
-| Ratio    | x1.30           | x1.41        | x1.28        | x1.43     | x1.61    | x1.47           |
-
-## Sparse Connection Tool(*experimental* *stage*)
-
-I tried to analyze the sparse connection of the CNN model.Using this tool,I've got some data([sparse-connection](https://github.com/BUG1989/caffe-int8-convert-tools/tree/master/sparse-connection)), and I hope you'll use it.
-=======
 | Test Dataset        | ILSVRC2012_img_val    5k                              |
 | Framework           | ncnn                                                  |
 | Support Layer       | Convolution,ConvolutionDepthwise,ReLU                 |
@@ -200,7 +155,6 @@ Storage Memory : mbytes
 | squeezenet_v1_ssd | 21.1 | 5.37 |
 | resnet18          | 44.6 | 11.2 |
 | googlenet_v1      | 26.6 | 6.72 |
->>>>>>> 527569f52d9475c04503448b60876bb889a1f22c
 
 ## Contributor
 
