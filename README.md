@@ -1,8 +1,8 @@
 # Caffe-Int8-Convert-Tools
 
-This convert tools is base on TensorRT 2.0 Int8 calibration tools,which use the KL algorithm to find the suitable threshold to quantize the activions from Float32 to Int8(-128 - 127).
+This convert tools is base on TensorRT 2.0 Int8 calibration tools, which use the KL algorithm to find the suitable threshold to quantize the activations from Float32 to Int8(-128 - 127).
 
-We provide the Classification(SqueezeNet_v1.1) and Detection(MobileNet_v1 SSD 300) demos based on [ncnn](https://github.com/Tencent/ncnn)(It is a high-performance neural network inference framework optimized for the mobile platform),and the community ready to support this implment.
+We provide the Classification(SqueezeNet_v1.1) and Detection(MobileNet_v1 SSD 300) demo based on [ncnn](https://github.com/Tencent/ncnn)(a high-performance neural network inference framework optimized for the mobile platform) and the community ready to support this implementation.
 
 [The pull request in ncnn](https://github.com/Tencent/ncnn/pull/749)
 
@@ -12,7 +12,7 @@ For details, please read the following PDF:
 
 [8-bit Inference with TensorRT](http://on-demand.gputechconf.com/gtc/2017/presentation/s7310-8-bit-inference-with-tensorrt.pdf) 
 
-MXNet quantization implement:
+MXNet quantization implementation:
 
 [Quantization module for generating quantized (INT8) models from FP32 models](https://github.com/apache/incubator-mxnet/blob/master/python/mxnet/contrib/quantization.py)
 
@@ -24,9 +24,9 @@ An introduction to the principles of a Chinese blog written by my friend([bruce.
 
 ### New version
 
-The purpose of this tool(caffe-int8-convert-tool-dev.py) is to test new features,such as mulit-channels quantization depend on group num.
+The purpose of this tool(caffe-int8-convert-tool-dev.py) is to test new features, such as multi-channel quantization depends on group num.
 
-This format is already supported in the [ncnn](https://github.com/Tencent/ncnn) latest version.I will do my best to transform some common network models into [classification-dev](https://github.com/BUG1989/caffe-int8-convert-tools/tree/master/classification-dev)
+This format is already supported in the [ncnn](https://github.com/Tencent/ncnn) latest version. I will do my best to transform some common network models into [classification-dev](https://github.com/BUG1989/caffe-int8-convert-tools/tree/master/classification-dev)
 
 ```
 python caffe-int8-convert-tool-dev-weight.py -h
@@ -90,7 +90,7 @@ Three steps to implement the *conv1* layer int8 convolution:
 
 ## Accuracy and Performance
 
-#### We used ImageNet2012 Dataset to complete some classification test.
+#### We use ImageNet2012 Dataset to complete some classification test.
 
 | Type                | Detail                                                |
 | ------------------- | ----------------------------------------------------- |
@@ -110,7 +110,7 @@ The following table show the Top1 and Top5 different between Float32 and Int8 in
 | ResNet18        | 65.49% | 86.56% | 65.30% | 86.52% | -0.19%    | -0.04%    |
 | ResNet50        | 71.80% | 89.90% | 71.76% | 90.06% | -0.04%    | +0.16%    |
 
-#### We used VOC0712,MSCOCO Dataset to complete some detection test.
+#### We use VOC0712,MSCOCO Dataset to complete some detection test.
 
 | Type         | Detail         |
 | ------------ | -------------- |
@@ -124,7 +124,7 @@ The following table show the Top1 and Top5 different between Float32 and Int8 in
 
 #### Speed up
 
-The following table show the speedup between Float32 and Int8 inference.It should be noted that the winograd algorithm is enable in the Float32 and Int8 inference.The Hardware Platform is Hisi3519(Cortex-A17@880MHz)
+The following table show the speedup between Float32 and Int8 inference. It should be noted that the winograd algorithm is enable in the Float32 and Int8 inference. The Hardware Platform is Hisi3519(Cortex-A17@880MHz)
 
 | Uint(ms) | SqueezeNet v1.1 | MobileNet v1 | GoogleNet | ResNet18 | MobileNetv1 SSD | SqueezeNet SSD |
 | -------- | --------------- | ------------ | --------- | -------- | --------------- | -------------- |
@@ -158,7 +158,7 @@ Storage Memory : mbytes
 
 ## Contributor
 
-Thanks to NVIDIA for providing the principle of correlation entropy,and ncnn's author [nihui](https://github.com/nihui) sharing his neural network inference framework.
+Thanks to NVIDIA for providing the principle of correlation entropy and ncnn's author [nihui](https://github.com/nihui) sharing his neural network inference framework.
 
 Thanks to the help from the following friends:
 
