@@ -1,10 +1,14 @@
 # Caffe-Int8-Convert-Tools
 
-This convert tools is base on TensorRT 2.0 Int8 calibration tools, which use the KL algorithm to find the suitable threshold to quantize the activations from Float32 to Int8(-128 - 127).
+This convert tools is base on TensorRT 2.0 Int8 calibration tools,which use the KL algorithm to find the suitable threshold to quantize the activions from Float32 to Int8(-127 - 127).
 
 We provide the Classification(SqueezeNet_v1.1) and Detection(MobileNet_v1 SSD 300) demo based on [ncnn](https://github.com/Tencent/ncnn)(a high-performance neural network inference framework optimized for the mobile platform) and the community ready to support this implementation.
 
 [The pull request in ncnn](https://github.com/Tencent/ncnn/pull/749)
+
+## NCNN have a new convert tool to support Post-Training-Quantization 
+
+Using this new [ncnn-quantization-tools](https://github.com/Tencent/ncnn/tree/master/tools/quantize),you can convert your ncnn model to ncnn int8 model directly.If you just want to deploy your model with ncnn,I suggest you use it.
 
 ## Reference
 
@@ -22,9 +26,7 @@ An introduction to the principles of a Chinese blog written by my friend([bruce.
 
 ## HowTo
 
-### New version
-
-The purpose of this tool(caffe-int8-convert-tool-dev.py) is to test new features, such as multi-channel quantization depends on group num.
+The purpose of this tool(caffe-int8-convert-tool-dev.py) is to test new features,such as mulit-channels quantization depend on group num.
 
 This format is already supported in the [ncnn](https://github.com/Tencent/ncnn) latest version. I will do my best to transform some common network models into [classification-dev](https://github.com/BUG1989/caffe-int8-convert-tools/tree/master/classification-dev)
 
@@ -42,7 +44,7 @@ optional arguments:
   --proto PROTO         path to deploy prototxt.
   --model MODEL         path to pretrained caffemodel
   --mean MEAN           value of mean
-  --norm NORM           value of normalize(scale value)
+  --norm NORM           value of normalize(scale value or std value)
   --images IMAGES       path to calibration images
   --output OUTPUT       path to output calibration table file
   --group GROUP         enable the group scale(0:disable,1:enable,default:1)
@@ -84,7 +86,7 @@ Three steps to implement the *conv1* layer int8 convolution:
    top_blob_float32 = top_blob_int32 / [data_scale(49.466518) * weight_scale(156.639840)] + bias_float32
    ```
 
-### How to use with ncnn
+## How to use with ncnn
 
 [quantized int8 inference](https://github.com/Tencent/ncnn/wiki/quantized-int8-inference#caffe-int8-convert-tools)
 
