@@ -1,6 +1,6 @@
 # Caffe-Int8-Convert-Tools
 
-This convert tools is base on TensorRT 2.0 Int8 calibration tools,which use the KL algorithm to find the suitable threshold to quantize the activions from Float32 to Int8(-127 - 127).
+This convert tools is base on TensorRT 2.0 Int8 calibration tools, which use the KL algorithm to find the suitable threshold to quantize the activions from Float32 to Int8(-127 - 127).
 
 We provide the Classification(SqueezeNet_v1.1) and Detection(MobileNet_v1 SSD 300) demo based on [ncnn](https://github.com/Tencent/ncnn)(a high-performance neural network inference framework optimized for the mobile platform) and the community ready to support this implementation.
 
@@ -8,7 +8,7 @@ We provide the Classification(SqueezeNet_v1.1) and Detection(MobileNet_v1 SSD 30
 
 ## NCNN have a new convert tool to support Post-Training-Quantization 
 
-Using this new [ncnn-quantization-tools](https://github.com/Tencent/ncnn/tree/master/tools/quantize),you can convert your ncnn model to ncnn int8 model directly.If you just want to deploy your model with ncnn,I suggest you use it.
+Using this new [ncnn-quantization-tools](https://github.com/Tencent/ncnn/tree/master/tools/quantize), you can convert your ncnn model to ncnn int8 model directly. If you just want to deploy your model with ncnn,I suggest you use it.
 
 ## Reference
 
@@ -26,7 +26,7 @@ An introduction to the principles of a Chinese blog written by my friend([bruce.
 
 ## HowTo
 
-The purpose of this tool(caffe-int8-convert-tool-dev.py) is to test new features,such as mulit-channels quantization depend on group num.
+The purpose of this tool(caffe-int8-convert-tool-dev.py) is to test new features, such as mulit-channels quantization depend on group num.
 
 This format is already supported in the [ncnn](https://github.com/Tencent/ncnn) latest version. I will do my best to transform some common network models into [classification-dev](https://github.com/BUG1989/caffe-int8-convert-tools/tree/master/classification-dev)
 
